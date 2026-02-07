@@ -50,20 +50,36 @@ Where:
 - `half_life` corresponds to `decay_half_life_days`.
 
 ### 5.2 Contribution weight
-Each signal’s contribution is stake-weighted and scaled by endorsement level:
+
+#### v0 (advisory — current implementation)
+
+v0 omits stake weighting per WG_PACKET scope. The score is a decay-weighted average of endorsement levels:
 
 ```
-# as specified
+score = sum(decay * endorsement_level / 5) / sum(decay)
+```
 
+- Output range: **0–1** (normalized)
+- See `reference-impl/m010_score.js` for canonical implementation
+- Test vector: v0_sample yields `reputation_score_0_1: 0.5488`
+
+#### Target (with on-chain stake — future v1)
+
+When on-chain stake data is available, contribution becomes stake-weighted:
+
+```
 score = sum(stake * decay * endorsement_level / 5) / total_weight * 1000
 ```
 
-Notes:
-- “total_weight” refers to the normalization denominator (e.g., total stake weight over included signals).
+- "total_weight" refers to the normalization denominator (total stake weight over included signals)
+- Output range: **0–1000**
+
+Notes (both versions):
 - Signals with status **withdrawn**, **challenged**, or **invalidated** do not contribute.
 
 ### 5.3 Normalization
-- Final score is normalized to **0–1000**.
+- **v0:** Final score is normalized to **0–1**.
+- **Target (v1):** Final score is normalized to **0–1000**.
 - Endorsement levels are 1–5.
 
 ### 5.4 Controls
